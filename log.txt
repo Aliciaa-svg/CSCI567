@@ -1,7 +1,1 @@
-Epoch: 0345 loss_train: 0.929720 acc_train: 0.778652 loss_val: 0.552635 acc_val: 0.729730 time: 633.146181s
-Optimization Finished! Total time elapsed: 633.346589
-Test set results, loss = 0.498586, accuracy = 0.830357
 
-Epoch: 0265 loss_train: 0.933583 acc_train: 0.779775 loss_val: 0.553609 acc_val: 0.747748 time: 433.685147s
-Optimization Finished! Total time elapsed: 433.861004
-Test set results, loss = 0.420135, accuracy = 0.866071
