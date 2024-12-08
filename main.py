@@ -2,7 +2,8 @@ import argparse
 import glob
 import os
 import time
-
+import random
+import numpy as np
 import torch
 import torch.nn.functional as F
 from models import Model
@@ -30,8 +31,13 @@ parser.add_argument('--patience', type=int, default=100, help='patience for earl
 
 args = parser.parse_args()
 torch.manual_seed(args.seed)
+random.seed(args.seed)  # Python random module
+np.random.seed(args.seed)
 if torch.cuda.is_available():
     torch.cuda.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 dataset = TUDataset(os.path.join('data', args.dataset), name=args.dataset, use_node_attr=True)
 
