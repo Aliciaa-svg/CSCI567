@@ -131,6 +131,7 @@ if __name__ == '__main__':
     # Model training
     best_model = train()
     # Restore best model for test set
+    # best_model = 'ckpt/164'
     model.load_state_dict(torch.load('{}.pth'.format(best_model)))
     test_acc, test_loss = compute_test(test_loader)
     print('Test set results, loss = {:.6f}, accuracy = {:.6f}'.format(test_loss, test_acc))
