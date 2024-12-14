@@ -3,6 +3,7 @@ import glob
 import os
 import time
 import random
+import logging
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -28,6 +29,14 @@ parser.add_argument('--dataset', type=str, default='PROTEINS', help='DD/PROTEINS
 parser.add_argument('--device', type=str, default='cuda:0', help='specify cuda devices')
 parser.add_argument('--epochs', type=int, default=1000, help='maximum number of epochs')
 parser.add_argument('--patience', type=int, default=100, help='patience for early stopping')
+
+logging.basicConfig(
+    filename='log.txt',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
 
 args = parser.parse_args()
 torch.manual_seed(args.seed)
@@ -85,6 +94,9 @@ def train():
         print('Epoch: {:04d}'.format(epoch + 1), 'loss_train: {:.6f}'.format(loss_train),
               'acc_train: {:.6f}'.format(acc_train), 'loss_val: {:.6f}'.format(loss_val),
               'acc_val: {:.6f}'.format(acc_val), 'time: {:.6f}s'.format(time.time() - t))
+        logging.info('Epoch: {:04d} loss_train: {:.6f} acc_train: {:.6f} loss_val: {:.6f} acc_val: {:.6f} time: {:.6f}s'.format(
+    epoch + 1, loss_train, acc_train, loss_val, acc_val, time.time() - t))
+
 
         val_loss_values.append(loss_val)
         torch.save(model.state_dict(), '{}.pth'.format(epoch))
@@ -110,6 +122,7 @@ def train():
         if epoch_nb > best_epoch:
             os.remove(f)
     print('Optimization Finished! Total time elapsed: {:.6f}'.format(time.time() - t))
+    logging.info('Optimization Finished! Total time elapsed: {:.6f}'.format(time.time() - t))
 
     return best_epoch
 
