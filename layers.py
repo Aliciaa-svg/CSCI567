@@ -63,7 +63,6 @@ class TwoHopNeighborhood(object):
         return '{}()'.format(self.__class__.__name__)
 
 
-
 class NodeInformationScore(MessagePassing):
     def __init__(self, improved=False, cached=False):
         super(NodeInformationScore, self).__init__(aggr='add')
@@ -98,6 +97,56 @@ class NodeInformationScore(MessagePassing):
 
     def message(self, x_j, norm):
         return norm.view(-1, 1) * x_j
+
+
+class NodeInformationScoreMI(MessagePassing):
+    def __init__(self, improved=False, cached=False):
+        super(NodeInformationScoreMI, self).__init__(aggr='add')
+        self.improved = improved
+        self.cached = cached
+        self._cached_edge_index = None
+        self._cached_norm = None
+
+    def forward(self, x, edge_index, edge_weight=None):
+        if self.cached and self._cached_edge_index is not None:
+            edge_index, norm = self._cached_edge_index, self._cached_norm
+        else:
+            num_nodes = x.size(0)
+            if edge_weight is None:
+                edge_weight = torch.ones((edge_index.size(1),), device=edge_index.device)
+            edge_index, edge_weight = add_self_loops(
+                edge_index, edge_weight, fill_value=1.0, num_nodes=num_nodes
+            )
+            row, col = edge_index
+            deg = degree(row, num_nodes, dtype=x.dtype)
+            deg_inv_sqrt = deg.pow(-0.5)
+            deg_inv_sqrt[deg_inv_sqrt == float('inf')] = 0
+            norm = deg_inv_sqrt[row] * edge_weight * deg_inv_sqrt[col]
+
+            if self.cached:
+                self._cached_edge_index = edge_index
+                self._cached_norm = norm
+        out = self.propagate(edge_index, x=x, norm=norm)
+
+        p_x = F.softmax(x, dim=-1)      
+        p_out = F.softmax(out, dim=-1)  
+        epsilon = 1e-12
+        p_xy = p_x.unsqueeze(2) * p_out.unsqueeze(1)
+        p_xy_clamped = p_xy.clamp(min=epsilon)
+        p_x_clamped = p_x.clamp(min=epsilon)
+        p_y_clamped = p_out.clamp(min=epsilon)
+        log_p_xy = torch.log(p_xy_clamped)               
+        log_p_x = torch.log(p_x_clamped)                
+        log_p_y = torch.log(p_y_clamped)                 
+        mi_component = p_xy_clamped * (log_p_xy - log_p_x.unsqueeze(2) - log_p_y.unsqueeze(1))
+        mi_scores = mi_component.sum(dim=(1, 2))  
+        mi_scores = mi_scores.unsqueeze(1)
+        return mi_scores
+
+    def message(self, x_j, norm):
+        return norm.view(-1, 1) * x_j
+
+
 
 
 class HGPSLPool(nn.Module):
