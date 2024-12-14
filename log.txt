@@ -466,3 +466,5 @@
 2024-12-14 03:34:59 - INFO - Epoch: 0226 loss_train: 0.970204 acc_train: 0.764045 loss_val: 0.539596 acc_val: 0.765766 time: 392.674663s
 2024-12-14 03:35:01 - INFO - Epoch: 0227 loss_train: 0.960478 acc_train: 0.765169 loss_val: 0.522936 acc_val: 0.738739 time: 394.240773s
 2024-12-14 03:35:01 - INFO - Optimization Finished! Total time elapsed: 394.432529
+
+
